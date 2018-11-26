@@ -1,15 +1,17 @@
 # Initialisation de U et V
 # nombre de dimensions
 p <- 10
-
+n <- length(dict)
 U <- matrix(runif(n*p), nrow = n, ncol = p)
 V <- matrix(runif(n*p), nrow = n, ncol = p)
 
 # Pas d'apprentissage
 eta <- 0.025
 
+
+
 # Boucle
-n_iter <- 10
+n_iter <- 1
 for(iter in 1:n_iter){
   
   # Mélange de D
@@ -19,23 +21,33 @@ for(iter in 1:n_iter){
   # Boucle sur les couples mot_cible/contexte
   for(row in 1:nrow(D)){
     
-    # Calcul du alpha contexte
-    ...
-    
     # ID du mot cible
     i <- D[row, 1]
     
+    # ID des mots contexte
+    j <- D[row, -1]
+    
+    # Calcul du alpha contexte
+    alpha_c <- apply(V[j,], 2, sum)/(2*l)
+    
+    
+    # Calcul des Softmax
+    softmax <- fun_softmax(U, alpha_c)
+    
     # MAJ de Ui
-    U[i,] <- U[i,] + eta * grad_u(U, V, D[row,], 2*l)
+    U[i,] <- U[i,] + eta * grad_u(U, V, softmax[i], alpha_c)
     
     # Boucle sur les mots contexte
     for(word in 1:(ncol(D)-1)){
       
       # ID du mot cible
-      j <- D[row, word + 1]
+      jl <- D[row, word + 1]
       
-      # MAJ de Vj
-      V[j,] <- V[j,] + eta * grad_v(U, V, D[row,], 2*l)
+      # MAJ de Vjl
+      V[jl,] <- V[jl,] + eta * grad_v(U, V, i, softmax, l)
     }
   }
 }
+
+
+
