@@ -7,15 +7,15 @@ library(text2vec)
 corpus <- import_data("text9")
 
 # Pour les tests
-N <- 1e5
+N <- 1e4
 
 # Largeur de la fenêtre contexte
 l <- 3
 dat <- create_data(corpus[1:N], l)
 
 # dimension des représentations
-p <- 10
+p <- 3
 # nombre d'itérations de la SGD
-it <- 5
+it <- 2
 
 U <- sgd_CBOW(dat$D, dat$vocab, p, it)
