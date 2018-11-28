@@ -1,5 +1,7 @@
-create_data <- function(rawText, l) {
-  corpus <- tm::MC_tokenizer(rawText)
+create_data <- function(path, l) {
+  lines <- readLines(path)
+  
+  corpus <- text2vec::word_tokenizer(lines)[[1]]
   
   # Rajout de mot vide au début et à la fin
   corpus <- c(rep("<>NULL<>", l),
