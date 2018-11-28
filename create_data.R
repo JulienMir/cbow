@@ -18,9 +18,9 @@ create_data <- function(token, l) {
   # Transformation du corpus de mots en corpus d'indices
   require(parallel)
   cls <- makeCluster(detectCores())
-  clusterExport(cls, list("dict"))
+  clusterExport(cls, list("dict"), envir = environment(create_data))
   
-  a<-clusterApply(cls, corpus, function(x){which(x == dict)})
+  corpus <- unlist(clusterApply(cls, corpus, function(x){which(x == dict)}))
   
   stopCluster(cls)
   
@@ -31,15 +31,6 @@ create_data <- function(token, l) {
   for(w in 1:(length(corpus)-2*l)){
     D[w,] <- c(corpus[w+l], corpus[w+l-(1:l)], corpus[w+l+(1:l)])
   }
-  
-  # Transformation des mots en indices
-  Dp <- matrix(rep(0, ncol(D)*nrow(D)), ncol = ncol(D))
-  for(ligne in 1:nrow(D)){
-    for(col in 1:ncol(D)){
-      Dp[ligne, col] <- which(D[ligne, col] == dict)
-    }
-  }
-  Dp <- apply(Dp, 2, as.numeric)
 
-  return(list(D = Dp, vocab = dict))
+  return(list(D = D, vocab = dict))
 }

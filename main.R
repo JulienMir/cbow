@@ -7,7 +7,7 @@ library(text2vec)
 corpus <- import_data("text9")
 
 # Pour les tests
-N <- 1e6
+N <- 1e5
 
 # Largeur de la fenêtre contexte
 l <- 3
