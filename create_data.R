@@ -1,6 +1,6 @@
 import_data <- function(path){
   # import
-  lines <- readLines(path)
+  lines <- readLines(path, warn=FALSE)
   # Tokenisation
   corpus <- word_tokenizer(lines)[[1]]
   return(corpus)
