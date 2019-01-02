@@ -3,6 +3,9 @@ source("sgd.R")
 
 library(text2vec)
 
+# Global config
+parallelize <- FALSE
+
 # Importation des données
 corpus <- import_data("text9")
 
