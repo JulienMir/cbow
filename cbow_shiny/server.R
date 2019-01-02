@@ -5,7 +5,16 @@ library(dplyr)
 
 shinyServer(server <- function(input, output, session) {
   
+  # Load learned representations
+  # Found at https://vsmlib.readthedocs.io/en/latest/tutorial/getting_vectors.html#pre-trained-vsms
+  representations <- vector("list", 3)
+  # representations[[1]] <- list(vectors=numpyload("chemin du jeu"), vocab=numpyload("chemin du jeu"))
+   
   ######################## GENERAL FUNCTIONS ########################
+  find_word <- function(word) {
+    return(which())
+  }
+    
   cosine_similarity <- function(a, b) {
     return(sum(a*b)/(sqrt(sum(a*a)) * sqrt( sum( b*b ) ) ))
   }
@@ -23,12 +32,7 @@ shinyServer(server <- function(input, output, session) {
   session$onSessionEnded(stopApp)
   
   ######################## MODEL ########################
-  
-  # Load learned representations
-  dict <- 
-  U <- read.csv("../representations.csv")
-  
-  ### Autoclompétion
+  ### Autocomplétion
   # Predicts the next possibles words when the text input changes
   get_next_words <- reactive({
     sentence <- input$sentence
@@ -38,11 +42,15 @@ shinyServer(server <- function(input, output, session) {
       df <- data.frame(word = character(0L),
                        prob = numeric(0L))
     }else{
-      words <- c("red", "white", "black", "blue", "orange", "green", "yellow")
-      val <- runif(length(words))
-      df <- data.frame(word = words, prob = val/sum(val)) %>%
-        arrange(desc(prob)) %>%
-        filter(row_number() <= 3)
+      sentence <- strsplit(sentence, " ")
+      
+      # for(vectors in representations) {
+      #   
+      #   val <- 0
+      #   for(token in sentence) {
+      #     
+      #   }
+      # }
     }
     return(df)
   })
@@ -77,6 +85,12 @@ shinyServer(server <- function(input, output, session) {
   })
   
   output$analogies_word_table <- renderTable({
+    find_analogy() %>%
+      rename("Résultats" = word,
+             "Probabilité" = prob)
+  })
+  
+  output$keyword_table <- renderTable({
     find_analogy() %>%
       rename("Résultats" = word,
              "Probabilité" = prob)
