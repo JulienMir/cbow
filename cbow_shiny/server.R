@@ -2,29 +2,45 @@ library(shiny)
 library(shinydashboard)
 library(shinyjs)
 library(dplyr)
+library(RcppCNPy)
 
 shinyServer(server <- function(input, output, session) {
   
   # Load learned representations
   # Found at https://vsmlib.readthedocs.io/en/latest/tutorial/getting_vectors.html#pre-trained-vsms
-  representations <- vector("list", 3)
-  # representations[[1]] <- list(vectors=numpyload("chemin du jeu"), vocab=numpyload("chemin du jeu"))
-   
-  ######################## GENERAL FUNCTIONS ########################
-  find_word <- function(word) {
-    return(which())
-  }
+  models <- vector("list", 2)
+  modelnames <- c("CBOW unbound", "SG unbound")
+  paths <- c("./data/word_deps_cbow_25d/", "./data/word_deps_sg_25d/")
+  
+  for(i in 1:2) {
+    # Lecture du fichier NPY convertit
+    con <- file(paste0(paths[i],"words25.bin"), "rb")
     
+    dim <- readBin(con, "integer", 2)
+    words <- matrix(readBin(con, "numeric", prod(dim)), dim[1], dim[2])
+    
+    close(con)
+    
+    vocab <- readLines(paste0(paths[i],"words25.vocab"))
+    
+    models[[i]] <- list(vectors=words, vocab=vocab)
+  }
+  
+  ######################## GENERAL FUNCTIONS ########################
   cosine_similarity <- function(a, b) {
     return(sum(a*b)/(sqrt(sum(a*a)) * sqrt( sum( b*b ) ) ))
   }
   
-  closest_words <- function(a, n=5) {
-    similarity <- numeric(length(words))
-    for(i in 1:length(words)) {
-      similarity[i] <- cosine_similarity(a, vectors[i,])
+  closest_words <- function(a, model, n=5) {
+    similarity <- numeric(length(model$vocab))
+    for(i in 1:length(model$vocab)) {
+      v1 <- a
+      v2 <- model$vectors[which(model$vocab == model$vocab[i])]
+      
+      similarity[i] <- cosine_similarity(v1, v2)
     }
-    ordered <- words[order(-similarity)]
+    
+    ordered <- model$vocab[order(-similarity)]
     return(ordered[1:n])
   }
   
@@ -35,23 +51,34 @@ shinyServer(server <- function(input, output, session) {
   ### Autocomplétion
   # Predicts the next possibles words when the text input changes
   get_next_words <- reactive({
-    sentence <- input$sentence
+    sentence <- tolower(input$sentence)
     
     if (nchar(sentence) == 0){
       # Empty df
       df <- data.frame(word = character(0L),
                        prob = numeric(0L))
-    }else{
-      sentence <- strsplit(sentence, " ")
-      
-      # for(vectors in representations) {
-      #   
-      #   val <- 0
-      #   for(token in sentence) {
-      #     
-      #   }
-      # }
     }
+    else{
+      sentence <- unlist(strsplit(sentence, "[ ]+"))
+      
+      print(sentence)
+      
+      for(model in models) {
+        res <- numeric(0)
+        
+        for(token in sentence) {
+          print(paste(token, " and ", vocab[which(model$vocab ==  token)]))
+          res <- res + model$vectors[which(model$vocab ==  token)]
+        }
+        
+        df <- cbind(df, data.frame(closest_words(res, model, 3)))
+      }
+    }
+    
+    colnames(df) <- modelnames
+    
+    print(df)
+    
     return(df)
   })
   
@@ -79,9 +106,7 @@ shinyServer(server <- function(input, output, session) {
   ######################## CONTROLLER ########################
   
   output$next_word_table <- renderTable({
-    get_next_words() %>%
-      rename("Mot suivant" = word,
-             "Probabilité" = prob)
+    get_next_words() 
   })
   
   output$analogies_word_table <- renderTable({
