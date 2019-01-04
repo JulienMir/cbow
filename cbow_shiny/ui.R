@@ -57,7 +57,7 @@ page <- dashboardPage(
           column(width = 2,
                  textInput(inputId = "analogy3",
                            label = "Mot 3 = ",
-                           value = "daugther")),
+                           value = "daughter")),
           column(width = 2, style = "margin-top: 24px;",
                  actionButton("ana_button", "Valider")),
           column(width = 2,

@@ -110,7 +110,7 @@ shinyServer(server <- function(input, output, session) {
       print(sentence)
       
       for(mod in selected_models) {
-        model <- model[[mod]]
+        model <- models[[mod]]
         res <- rep(0, ncol(model$vectors))
         
         for(token in sentence) {
@@ -148,7 +148,7 @@ shinyServer(server <- function(input, output, session) {
                        sg = numeric(0L))
     }else{
       for(mod in selected_models) {
-        model <- model[[mod]]
+        model <- models[[mod]]
         res <- rep(0, ncol(model$vectors))
         
         res <- res + model$vectors[which(model$vocab ==  analogy1), ]
