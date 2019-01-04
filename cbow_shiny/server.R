@@ -19,7 +19,7 @@ shinyServer(server <- function(input, output, session) {
     return(sum(a*b)/(sqrt(sum(a*a)) * sqrt( sum( b*b ) ) ))
   }
   
-  closest_words <- function(a, n=5) {
+  closest_words <- function(a, n = 5) {
     similarity <- numeric(length(words))
     for(i in 1:length(words)) {
       similarity[i] <- cosine_similarity(a, vectors[i,])
@@ -42,8 +42,13 @@ shinyServer(server <- function(input, output, session) {
       df <- data.frame(word = character(0L),
                        prob = numeric(0L))
     }else{
-      sentence <- strsplit(sentence, " ")
-      
+      words <- c("red", "white", "black", "blue", "orange", "green", "yellow")
+      val <- runif(length(words))
+      df <- data.frame(word = words, prob = val/sum(val)) %>%
+        arrange(desc(prob)) %>%
+        filter(row_number() <= 3)
+      # sentence <- strsplit(sentence, " ")
+      # 
       # for(vectors in representations) {
       #   
       #   val <- 0
@@ -86,13 +91,13 @@ shinyServer(server <- function(input, output, session) {
   
   output$analogies_word_table <- renderTable({
     find_analogy() %>%
-      rename("Résultats" = word,
+      rename("Résultat" = word,
              "Probabilité" = prob)
   })
   
   output$keyword_table <- renderTable({
     find_analogy() %>%
-      rename("Résultats" = word,
+      rename("Résultat" = word,
              "Probabilité" = prob)
   })
 })
