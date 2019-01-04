@@ -7,14 +7,25 @@ library(ggplot2)
 
 shinyServer(server <- function(input, output, session) {
   
-  # Load learned representations
+  ######################## INITIALIZATION ########################
+  ### Filter words
+  # Import words counts
+  words_counts <- read.csv2("./data/words_counts.csv") %>%
+    mutate(word = as.character(word))
+  
+  # We keep only the Nwords most frequent words
+  Nwords <- 10000
+  words_kept <- words_counts$word[1:Nwords]
+  rm(words_counts)
+  
+  ### Load learned representations
   # Found at https://vsmlib.readthedocs.io/en/latest/tutorial/getting_vectors.html#pre-trained-vsms
   models <- vector("list", 2)
   modelnames <- c("CBOW Unbound", "SkipGram Unbound")
   paths <- c("./data/word_deps_cbow_25d/", "./data/word_deps_sg_25d/")
   
   for(i in 1:2) {
-    # Lecture du fichier NPY convertit
+    # Lecture du fichier .NPY converti
     con <- file(paste0(paths[i],"words25.bin"), "rb")
     
     dim <- readBin(con, "integer", 2)
@@ -32,8 +43,15 @@ shinyServer(server <- function(input, output, session) {
     words <- words[!duplicated(vocab), ]
     vocab <- vocab[!duplicated(vocab)]
     
+    # We keep only the words in words_kept
+    index <- which(vocab %in% words_kept)
+    vocab <- vocab[index]
+    words <- words[index,]
+    
+    
     models[[i]] <- list(vectors=words, vocab=vocab)
   }
+  
   
   ######################## GENERAL FUNCTIONS ########################
   cosine_similarity <- function(a, b) {
@@ -174,7 +192,6 @@ shinyServer(server <- function(input, output, session) {
       
       coords <- rbind(coords, df)
     }
-    print(coords)
   
     return(coords)
   })
