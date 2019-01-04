@@ -1,5 +1,6 @@
 library(shiny)
 library(shinydashboard)
+library(plotly)
 
 page <- dashboardPage(
   
@@ -65,6 +66,29 @@ page <- dashboardPage(
                            value = "Capital France")),
           column(width = 3,
                  tableOutput("keyword_table"))
+        )),
+    uiOutput("moreControls"),
+    # Fenêtre de la visualisation des projections
+    box(title = "Visualisation des projections",
+        status = "primary",
+        width = 12,
+        solidHeader = T,
+        collapsible = T,
+        # box content :
+        fluidRow(
+          column(width = 4,
+                 column(width = 12,
+                        textInput(inputId = "visu_text",
+                                  label = "Saisissez les mots à visualiser",
+                                  value = "car bike cat dog raspberry strawberry")),
+                 column(width = 9,
+                         selectInput("visu_model_choice", label = "Choix du modèle", multiple = FALSE,
+                                     choices = list("CBOW Unbound" = 1, "SkipGram Unbound" = 2),
+                                     selected = 1)),
+                 column(width = 3, style = "margin-top: 24px;",
+                         actionButton("visu_button", "Valider"))),
+          column(width = 8,
+                 plotOutput("visu_graph"))
         ))
   )
 )
