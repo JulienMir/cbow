@@ -14,6 +14,7 @@ mat = np.load(inputfile)
 binfile = open(outputfile, 'wb')
 
 # and write out two integers with the row and column dimension
+print("Matrix shape : ", mat.shape)
 header = struct.pack('2I', mat.shape[0], mat.shape[1])
 binfile.write(header)
 
@@ -23,3 +24,6 @@ for i in range(mat.shape[1]):
     binfile.write(data)
 		
 binfile.close()
+
+print("Done! Press any key...")
+raw_input()

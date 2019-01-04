@@ -24,7 +24,7 @@ page <- dashboardPage(
           column(width = 7,
                  textInput(inputId = "sentence",
                            label = h3("Veuillez écrire une phrase"),
-                           value = "My favourite color is")),
+                           value = "skjdfjskuoouiuorizldjfkl sjkdfhmlkjfglkjsdg")),
           column(width = 5,
                  tableOutput("next_word_table"))
           )),
@@ -39,32 +39,17 @@ page <- dashboardPage(
           column(width = 3,
                  textInput(inputId = "analogy1",
                            label = h3("Mot 1 - "),
-                           value = "Mot 1")),
+                           value = "Kidlfsjkng")),
           column(width = 3,
                  textInput(inputId = "analogy2",
                            label = h3("Mot 2 + "),
-                           value = "Mot 2")),
+                           value = "majkldsfjlskn")),
           column(width = 3,
                  textInput(inputId = "analogy3",
                            label = h3("Mot 3 = "),
-                           value = "Mot 3")),
+                           value = "womsldkfman")),
           column(width = 3,
                  tableOutput("analogies_word_table"))
-        )),
-    # Fenetre des mot-clefs
-    box(title = "Mot-clefs",
-        status = "primary",
-        width = 12,
-        solidHeader = T,
-        collapsible = T,
-        # box content :
-        fluidRow(
-          column(width = 7,
-                 textInput(inputId = "keyword1",
-                           label = h3("Entre votre texte"),
-                           value = "Capital France")),
-          column(width = 3,
-                 tableOutput("keyword_table"))
         ))
   )
 )

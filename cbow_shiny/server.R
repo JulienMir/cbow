@@ -3,6 +3,7 @@ library(shinydashboard)
 library(shinyjs)
 library(dplyr)
 library(RcppCNPy)
+library(doParallel)
 
 shinyServer(server <- function(input, output, session) {
   
@@ -17,11 +18,19 @@ shinyServer(server <- function(input, output, session) {
     con <- file(paste0(paths[i],"words25.bin"), "rb")
     
     dim <- readBin(con, "integer", 2)
-    words <- matrix(readBin(con, "numeric", prod(dim)), dim[1], dim[2])
+    words <- matrix(readBin(con, "numeric", prod(dim)), nrow=dim[1], ncol=dim[2])
     
     close(con)
     
     vocab <- readLines(paste0(paths[i],"words25.vocab"))
+    
+    # On filtre les caractères alphanumériques
+    vocab <- gsub("[^a-z]+", "", vocab)
+    words <- words[which(vocab != ""), ]
+    vocab <- vocab[which(vocab != "")]
+    
+    words <- words[!duplicated(vocab), ]
+    vocab <- vocab[!duplicated(vocab)]
     
     models[[i]] <- list(vectors=words, vocab=vocab)
   }
@@ -32,13 +41,28 @@ shinyServer(server <- function(input, output, session) {
   }
   
   closest_words <- function(a, model, n=5) {
-    similarity <- numeric(length(model$vocab))
-    for(i in 1:length(model$vocab)) {
-      v1 <- a
-      v2 <- model$vectors[which(model$vocab == model$vocab[i])]
-      
-      similarity[i] <- cosine_similarity(v1, v2)
+    print("Find similarities")
+    
+    if(length(a) == 0) {
+      return(rep("ERROR", n))
     }
+    
+    similarity <- numeric(length(model$vocab))
+    
+    registerDoParallel(3)
+
+    similarity <- foreach(i = 1:length(model$vocab), .combine = "c", .export = "cosine_similarity") %dopar%
+      cosine_similarity(a, model$vectors[which(model$vocab == model$vocab[i]), ])
+
+    stopImplicitCluster()
+    
+    # for(i in 1:length(model$vocab)) {
+    #   v <- model$vectors[which(model$vocab == model$vocab[i]), ]
+    # 
+    #   similarity[i] <- cosine_similarity(a, v)
+    # 
+    #   cat(".")
+    # }
     
     ordered <- model$vocab[order(-similarity)]
     return(ordered[1:n])
@@ -53,10 +77,12 @@ shinyServer(server <- function(input, output, session) {
   get_next_words <- reactive({
     sentence <- tolower(input$sentence)
     
+    df <- NULL
+    
     if (nchar(sentence) == 0){
       # Empty df
-      df <- data.frame(word = character(0L),
-                       prob = numeric(0L))
+      df <- data.frame(cbow = character(0L),
+                       sg = numeric(0L))
     }
     else{
       sentence <- unlist(strsplit(sentence, "[ ]+"))
@@ -64,18 +90,19 @@ shinyServer(server <- function(input, output, session) {
       print(sentence)
       
       for(model in models) {
-        res <- numeric(0)
+        res <- rep(0, ncol(model$vectors))
         
         for(token in sentence) {
-          print(paste(token, " and ", vocab[which(model$vocab ==  token)]))
-          res <- res + model$vectors[which(model$vocab ==  token)]
+          print(paste(token, " and ", model$vocab[which(model$vocab ==  token)]))
+          res <- res + model$vectors[which(model$vocab ==  token), ]
         }
         
-        df <- cbind(df, data.frame(closest_words(res, model, 3)))
+        df <- cbind(df, closest_words(res, model, 3))
       }
     }
-    
+    print(df)
     colnames(df) <- modelnames
+    print("name model")
     
     print(df)
     
@@ -85,21 +112,29 @@ shinyServer(server <- function(input, output, session) {
   ### Analogies
   # Find the result of arthimetic operation on representation vectors
   find_analogy <- reactive({
-    analogy1 <- input$analogy1
-    analogy2 <- input$analogy2
-    analogy3 <- input$analogy3
+    analogy1 <- tolower(input$analogy1)
+    analogy2 <- tolower(input$analogy2)
+    analogy3 <- tolower(input$analogy3)
+    
+    df <- NULL
     
     if (nchar(analogy1) == 0 || nchar(analogy2) == 0 || nchar(analogy3) == 0){
       # Empty df
-      df <- data.frame(word = character(0L),
-                       prob = numeric(0L))
+      df <- data.frame(cbow = character(0L),
+                       sg = numeric(0L))
     }else{
-      words <- c("red", "white", "black", "blue", "orange", "green", "yellow")
-      val <- runif(length(words))
-      df <- data.frame(word = words, prob = val/sum(val)) %>%
-        arrange(desc(prob)) %>%
-        filter(row_number() <= 3)
+      for(model in models) {
+        res <- rep(0, ncol(model$vectors))
+        
+        res <- res + model$vectors[which(model$vocab ==  analogy1), ]
+        res <- res - model$vectors[which(model$vocab ==  analogy2), ]
+        res <- res + model$vectors[which(model$vocab ==  analogy3), ]
+        
+        df <- cbind(df, closest_words(res, model, 3))
+      }
     }
+    colnames(df) <- modelnames
+    
     return(df)
   })
   
@@ -110,14 +145,6 @@ shinyServer(server <- function(input, output, session) {
   })
   
   output$analogies_word_table <- renderTable({
-    find_analogy() %>%
-      rename("Résultats" = word,
-             "Probabilité" = prob)
-  })
-  
-  output$keyword_table <- renderTable({
-    find_analogy() %>%
-      rename("Résultats" = word,
-             "Probabilité" = prob)
+    find_analogy()
   })
 })
