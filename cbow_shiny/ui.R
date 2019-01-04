@@ -29,7 +29,7 @@ page <- dashboardPage(
                  textInput(inputId = "sentence",
                            label = "Veuillez écrire une phrase",
                            value = "The journalist reported that there was a terrible")),
-          column(width = 2, style = "margin-top: 24px;",
+          column(width = 1, style = "margin-top: 24px;",
                  actionButton("auto_button", "Valider")),
           column(width = 3,
                  tableOutput("next_word_table"))
@@ -58,9 +58,9 @@ page <- dashboardPage(
                  textInput(inputId = "analogy3",
                            label = "Mot 3 = ",
                            value = "daughter")),
-          column(width = 2, style = "margin-top: 24px;",
+          column(width = 1, style = "margin-top: 24px;",
                  actionButton("ana_button", "Valider")),
-          column(width = 2,
+          column(width = 3,
                  tableOutput("analogies_word_table"))
         )),
     # Fenêtre de la visualisation des projections
