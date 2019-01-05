@@ -395,6 +395,5 @@ shinyServer(server <- function(input, output, session) {
              color = "Modèle") +
         theme(plot.title = element_text(hjust = 0.5))
     }
-
   })
 })
