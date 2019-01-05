@@ -7,54 +7,6 @@ library(ggplot2)
 
 shinyServer(server <- function(input, output, session) {
   
-<<<<<<< HEAD
-  # ######################## INITIALIZATION ########################
-  # ### Filter words
-  # # Import words counts
-  # words_counts <- read.csv2("./data/words_counts.csv") %>%
-  #   mutate(word = as.character(word))
-  # 
-  # # We keep only the Nwords most frequent words
-  # Nwords <- 10000
-  # words_kept <- words_counts$word[1:Nwords]
-  # rm(words_counts)
-  # 
-  # ### Load learned representations
-  # # Found at https://vsmlib.readthedocs.io/en/latest/tutorial/getting_vectors.html#pre-trained-vsms
-  # models <- vector("list", 2)
-  # modelnames <- c("CBOW Unbound", "SkipGram Unbound")
-  # paths <- c("./data/word_deps_cbow_25d/", "./data/word_deps_sg_25d/")
-  # 
-  # for(i in 1:2) {
-  #   # Lecture du fichier .NPY converti
-  #   con <- file(paste0(paths[i],"words25.bin"), "rb")
-  #   
-  #   dim <- readBin(con, "integer", 2)
-  #   words <- matrix(readBin(con, "numeric", prod(dim)), nrow=dim[1], ncol=dim[2])
-  #   
-  #   close(con)
-  #   
-  #   vocab <- readLines(paste0(paths[i],"words25.vocab"))
-  #   
-  #   # On filtre les caractères alphanumériques
-  #   vocab <- gsub("[^a-z]+", "", vocab)
-  #   words <- words[which(vocab != ""), ]
-  #   vocab <- vocab[which(vocab != "")]
-  #   
-  #   words <- words[!duplicated(vocab), ]
-  #   vocab <- vocab[!duplicated(vocab)]
-  #   
-  #   # We keep only the words in words_kept
-  #   index <- which(vocab %in% words_kept)
-  #   vocab <- vocab[index]
-  #   words <- words[index,]
-  #   
-  #   
-  #   models[[i]] <- list(vectors=words, vocab=vocab)
-  # }
-  
-=======
->>>>>>> master
   ######################## INITIALIZATION ########################
   ### Load learned representations
   # Found at https://vsmlib.readthedocs.io/en/latest/tutorial/getting_vectors.html#pre-trained-vsms
@@ -66,16 +18,8 @@ shinyServer(server <- function(input, output, session) {
   models <- vector("list", length(paths))
   
   for(i in 1:length(paths)) {
-<<<<<<< HEAD
-    
-    words <- as.matrix(read.csv2(paste0(paths[i], "words.csv")))
-    vocab <- as.character(read.csv2(paste0(paths[i], "vocab.csv"))[,1])
-    
-    models[[i]] <- list(vectors=words, vocab=vocab)
-=======
     models[[i]] <- list(vectors = as.matrix(read.csv2(paste0(paths[i], "words.csv"))), 
                         vocab = as.character(read.csv2(paste0(paths[i], "vocab.csv"))[,1]))
->>>>>>> master
   }
   
   
@@ -84,14 +28,7 @@ shinyServer(server <- function(input, output, session) {
     return(sum(a*b)/(sqrt(sum(a*a)) * sqrt( sum( b*b ) ) ))
   }
   
-<<<<<<< HEAD
-  closest_words <- function(a, model, n=5) {
-    print("Find similarities")
-    
-    if(length(a) == 0) {
-      return(rep("ERROR", n))
-=======
-  closest_words <- function(a, model, n=5, parallel=FALSE) {
+  closest_words <- function(a, model, n=5, parallel=TRUE) {
     if(length(a) == 0) {
       return(rep("ERROR", n))
     }
@@ -112,26 +49,8 @@ shinyServer(server <- function(input, output, session) {
         
         similarity[i] <- cosine_similarity(a, v)
       }
->>>>>>> master
     }
-    
-    similarity <- numeric(length(model$vocab))
-    
-    registerDoParallel(3)
-    
-    similarity <- foreach(i = 1:length(model$vocab), .combine = "c", .export = "cosine_similarity") %dopar%
-      cosine_similarity(a, model$vectors[which(model$vocab == model$vocab[i]), ])
-    
-    stopImplicitCluster()
-    
-    # for(i in 1:length(model$vocab)) {
-    #   v <- model$vectors[which(model$vocab == model$vocab[i]), ]
-    # 
-    #   similarity[i] <- cosine_similarity(a, v)
-    # 
-    #   cat(".")
-    # }
-    
+		
     ordered <- model$vocab[order(-similarity)]
     return(ordered[1:n])
   }
@@ -140,49 +59,6 @@ shinyServer(server <- function(input, output, session) {
   session$onSessionEnded(stopApp)
   
   ######################## MODEL ########################
-<<<<<<< HEAD
-  ### Autocomplétion
-  # Predicts the next possibles words when the text input changes
-  get_next_words <- eventReactive(input$auto_button, {
-    sentence <- tolower(input$sentence)
-    
-    selected_models <- as.integer(input$auto_model_choice)
-    
-    df <- NULL
-    
-    if (nchar(sentence) == 0){
-      # Empty df
-      df <- data.frame(cbow = character(0L),
-                       sg = numeric(0L))
-    }
-    else{
-      sentence <- unlist(strsplit(sentence, "[ ]+"))
-      
-      print(sentence)
-      
-      for(mod in selected_models) {
-        model <- models[[mod]]
-        res <- rep(0, ncol(model$vectors))
-        
-        for(token in sentence) {
-          print(paste(token, " and ", model$vocab[which(model$vocab ==  token)]))
-          res <- res + model$vectors[which(model$vocab ==  token), ]
-        }
-        
-        df <- cbind(df, closest_words(res, model, 3))
-      }
-    }
-    print(df)
-    colnames(df) <- modelnames[selected_models]
-    print("name model")
-    
-    print(df)
-    
-    return(df)
-  })
-  
-=======
->>>>>>> master
   ### Analogies
   # Find the result of arthimetic operation on representation vectors
   find_analogy <- eventReactive(input$ana_button, {
@@ -194,25 +70,7 @@ shinyServer(server <- function(input, output, session) {
     analogy3 <- tolower(input$analogy3)
     
     df <- NULL
-    
-<<<<<<< HEAD
-    if (nchar(analogy1) == 0 || nchar(analogy2) == 0 || nchar(analogy3) == 0){
-      # Empty df
-      df <- data.frame(cbow = character(0L),
-                       sg = numeric(0L))
-    }else{
-      for(mod in selected_models) {
-        model <- models[[mod]]
-        res <- rep(0, ncol(model$vectors))
-        
-        res <- res + model$vectors[which(model$vocab ==  analogy1), ]
-        res <- res - model$vectors[which(model$vocab ==  analogy2), ]
-        res <- res + model$vectors[which(model$vocab ==  analogy3), ]
-        
-        df <- cbind(df, closest_words(res, model, 3))
-      }
-    }
-=======
+		
     for(mod in selected_models) {
       model <- models[[mod]]
       res <- rep(0, ncol(model$vectors))
@@ -224,7 +82,6 @@ shinyServer(server <- function(input, output, session) {
       df <- cbind(df, closest_words(res, model, 3))
     }
     
->>>>>>> master
     colnames(df) <- modelnames[selected_models]
     
     return(df)
@@ -277,11 +134,7 @@ shinyServer(server <- function(input, output, session) {
   get_key_word <- eventReactive(input$key_button, {
     
     # word tokenisation (same order as input)
-<<<<<<< HEAD
-    words <- strsplit(tolower(input$key_text), " ")[[1]]
-=======
     words <- unlist(strsplit(tolower(input$key_text), " "))
->>>>>>> master
     
     # Index of the chosen models
     selected_models <- as.integer(input$key_model_choice)
@@ -307,13 +160,8 @@ shinyServer(server <- function(input, output, session) {
       }
       i <- i+1
     }
-<<<<<<< HEAD
     names(df) <- modelnames[selected_models]
-=======
-    
-    names(df) <- modelnames[selected_models]
-    
->>>>>>> master
+		
     return(df)
   })
   
@@ -370,11 +218,6 @@ shinyServer(server <- function(input, output, session) {
   
   ######################## CONTROLLER ########################
   ### TABLES
-<<<<<<< HEAD
-  output$next_word_table <- renderTable({
-    get_next_words() 
-  })
-  
   output$analogies_word_table <- renderTable({
     find_analogy()
   })
@@ -383,16 +226,6 @@ shinyServer(server <- function(input, output, session) {
     get_key_word()
   })
   
-=======
-  output$analogies_word_table <- renderTable({
-    find_analogy()
-  })
-  
-  output$key_word_table <- renderTable({
-    get_key_word()
-  })
-  
->>>>>>> master
   output$like_table1 <- renderTable({
     likelyhood1() %>%
       rename("Score" = score,
@@ -466,8 +299,4 @@ shinyServer(server <- function(input, output, session) {
         theme(plot.title = element_text(hjust = 0.5))
     }
   })
-<<<<<<< HEAD
 })
-=======
-})
->>>>>>> master

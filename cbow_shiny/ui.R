@@ -13,30 +13,6 @@ page <- dashboardPage(
   
   ################### BODY ###################
   dashboardBody(
-<<<<<<< HEAD
-    # Fenetre de l'autocomplétion
-    box(title = "Autocomplétion",
-        status = "primary",
-        width = 12,
-        solidHeader = T,
-        collapsible = T,
-        # box content :
-        fluidRow(
-          column(width = 2,
-                 checkboxGroupInput("auto_model_choice", label = "Choix des modèles", 
-                                    choices = list("CBOW 25d" = 1, "SkipGram 25d" = 2, "CBOW 500d" = 3, "SkipGram 500d" = 4),
-                                    selected = 1)),
-          column(width = 6,
-                 textInput(inputId = "sentence",
-                           label = "Veuillez écrire une phrase",
-                           value = "The journalist reported that there was a terrible")),
-          column(width = 1, style = "margin-top: 24px;",
-                 actionButton("auto_button", "Valider")),
-          column(width = 3,
-                 tableOutput("next_word_table"))
-        )),
-=======
->>>>>>> master
     # Fenetre des analogies
     box(title = "Analogies",
         status = "primary",
@@ -106,7 +82,6 @@ page <- dashboardPage(
                                height = "55px")),
           column(width = 1, style = "margin-top: 24px;",
                  actionButton("like_button", "Valider")),
-<<<<<<< HEAD
           column(width = 3,
                  tableOutput("like_table1"))
         ),
@@ -119,20 +94,6 @@ page <- dashboardPage(
                                height = "55px")),
           column(width = 1),
           column(width = 3,
-=======
-          column(width = 3,
-                 tableOutput("like_table1"))
-        ),
-        fluidRow(
-          column(width = 2),
-          column(width = 6,
-                 textAreaInput(inputId = "like_text2",
-                               label = "Et une seconde si vous voulez comparer les scores de vraisemblance",
-                               value = "My classification tooth and my belt 's philosophy dishwasher are late at the cemetery",
-                               height = "55px")),
-          column(width = 1),
-          column(width = 3,
->>>>>>> master
                  tableOutput("like_table2"))
         )),
     
